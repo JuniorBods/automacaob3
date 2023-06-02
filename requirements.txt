@@ -1,0 +1,6 @@
+pandas
+Metatrader5
+pyarrow
+numba
+vectorbt
+numpy
