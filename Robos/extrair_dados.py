@@ -34,7 +34,6 @@ def buscahistorico(ativos):
             tempo = mt5.TIMEFRAME_D1
         ativos = ativos.split(",")
         for ativo in ativos:
-            # print(ativo)
             ticks = mt5.copy_rates_range(ativo, tempo, data0, data1)
             data_ticks = pd.DataFrame(ticks)
             data_ticks['time'] = pd.to_datetime(data_ticks['time'], utc=True, unit='s')
