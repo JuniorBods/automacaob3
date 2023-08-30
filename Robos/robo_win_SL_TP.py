@@ -14,7 +14,7 @@ if not mt5.initialize():
     mt5.shutdown()
 
 # Especificar o símbolo do contrato a ser negociado
-symbol_buy = "winm23".upper()
+symbol_buy = "winq23".upper()
 selected = mt5.symbol_select(symbol_buy)
 if selected:
     print('Ativo Já Existe ou foi Incluido')
@@ -154,7 +154,6 @@ def buscahistorico(ativos):
             data_ticks = pd.DataFrame(ticks)
             data_ticks['time'] = pd.to_datetime(data_ticks['time'], utc=True, unit='s')
             data_ticks.set_index('time', inplace=True)
-            # table = pa.Table.from_pandas(data_ticks)
             return data_ticks
         
         
@@ -175,19 +174,15 @@ def indicadores():
 
 
 def open_position():
-    if 8 <= datetime.now().hour <= 16:
-        if position_get() == 0:
-            if indicadores() == 1:
-                print(indicadores)
-                buy_order(symbol_buy, lot)
-                print('ORDEM DE COMPRA ABERTA')
-                strategy()
-            elif indicadores() == 0:
-                sell_order(symbol_buy, lot_sell)
-                print('ORDEM DE VENDA ABERTA')
-                strategy()
-        else:
-            print('Você já tem posições abertas')
+    if 8 <= datetime.now().hour <= 18:
+        if indicadores() == 1:
+            print(indicadores)
+            buy_order(symbol_buy, lot)
+            print('ORDEM DE COMPRA ABERTA')
+            strategy()
+        elif indicadores() == 0:
+            sell_order(symbol_buy, lot_sell)
+            print('ORDEM DE VENDA ABERTA')
             strategy()
     else:
         print('Já Acabou o dia!')
@@ -204,8 +199,12 @@ def strategy():
             data_posicoes['time_update'] = pd.to_datetime(data_posicoes['time_update'], unit='s')
             data_posicoes['time_update_msc'] = pd.to_datetime(data_posicoes['time_update_msc'])
 
-            lucroAtivo01 = data_posicoes['profit'][0]
-
+            for index, value in enumerate(data_posicoes['symbol']):
+                # print(value)
+                if value == symbol_buy:
+                    lucroAtivo01 = data_posicoes['profit'][index]
+                    print(lucroAtivo01)
+            
             profit_total = lucroAtivo01
             # print(profit_total)
             if profit_total >= 0:
@@ -226,51 +225,51 @@ def strategy():
             break
         
 # aguarda 250 pontos de ganho para mover o stoploss para breakeven
-def Breakeven():
-    while True:
-        position = mt5.positions_get(symbol=symbol)[0]
-        if position.profit > 50 * mt5.symbol_info(symbol).point:
-            request = {
-                "action": mt5.TRADE_ACTION_SLTP,
-                "symbol": symbol,
-                "type": mt5.ORDER_TYPE_BUY,
-                "position": position.ticket,
-                "sl": position.open_price,
-                "price": position.open_price,
-                "magic": magic_number,
-                "deviation": deviation
-            }
-            result = mt5.order_send(request)
-            if result.retcode != mt5.TRADE_RETCODE_DONE:
-                print("order_send failed, retcode =", result.retcode)
-                print("result", result)
-            else:
-                print("order_send done, ", result)
-            break
+# def Breakeven():
+#     while True:
+#         position = mt5.positions_get(symbol=symbol)[0]
+#         if position.profit > 50 * mt5.symbol_info(symbol).point:
+#             request = {
+#                 "action": mt5.TRADE_ACTION_SLTP,
+#                 "symbol": symbol,
+#                 "type": mt5.ORDER_TYPE_BUY,
+#                 "position": position.ticket,
+#                 "sl": position.open_price,
+#                 "price": position.open_price,
+#                 "magic": magic_number,
+#                 "deviation": deviation
+#             }
+#             result = mt5.order_send(request)
+#             if result.retcode != mt5.TRADE_RETCODE_DONE:
+#                 print("order_send failed, retcode =", result.retcode)
+#                 print("result", result)
+#             else:
+#                 print("order_send done, ", result)
+#             break
 
-# define o stopmóvel com passo de 50 pontos
-def stopmove():
-    while True:
-        position = mt5.positions_get(symbol=symbol)[0]
-        if position.profit > 50 * mt5.symbol_info(symbol).point:
-            sl = position.open_price + 50 * mt5.symbol_info(symbol).point
-            request = {
-                "action": mt5.TRADE_ACTION_SLTP,
-                "symbol": symbol,
-                "type": mt5.ORDER_TYPE_BUY,
-                "position": position.ticket,
-                "sl": sl,
-                "price": position.open_price,
-                "magic": magic_number,
-                "deviation": deviation
-            }
-            result = mt5.order_send(request)
-            if result.retcode != mt5.TRADE_RETCODE_DONE:
-                print("order_send failed, retcode =", result.retcode)
-                print("result", result)
-            else:
-                print("order_send done, ", result)
-        mt5.sleep(1000) # aguarda 1 segundo antes de verificar novamente
+# # define o stopmóvel com passo de 50 pontos
+# def stopmove():
+#     while True:
+#         position = mt5.positions_get(symbol=symbol)[0]
+#         if position.profit > 50 * mt5.symbol_info(symbol).point:
+#             sl = position.open_price + 50 * mt5.symbol_info(symbol).point
+#             request = {
+#                 "action": mt5.TRADE_ACTION_SLTP,
+#                 "symbol": symbol,
+#                 "type": mt5.ORDER_TYPE_BUY,
+#                 "position": position.ticket,
+#                 "sl": sl,
+#                 "price": position.open_price,
+#                 "magic": magic_number,
+#                 "deviation": deviation
+#             }
+#             result = mt5.order_send(request)
+#             if result.retcode != mt5.TRADE_RETCODE_DONE:
+#                 print("order_send failed, retcode =", result.retcode)
+#                 print("result", result)
+#             else:
+#                 print("order_send done, ", result)
+#         mt5.sleep(1000) # aguarda 1 segundo antes de verificar novamente
 
 
 

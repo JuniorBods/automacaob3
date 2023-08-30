@@ -1,9 +1,8 @@
 import MetaTrader5 as mt5
-import Robos.indicadores_modulo as ind
 from extrair_dados import buscahistorico
-import pyarrow.parquet as pq
-from tkinter import filedialog
-import plotly.graph_objects as go
+from backtesting import Backtest, Strategy
+from backtesting.lib import crossover
+import talib
 
 # Conectar à plataforma MetaTrader 5
 if not mt5.initialize():
@@ -18,43 +17,29 @@ if not selected:
     print('Ativo não encontrado')
 
 # Busca Historico do ativo
-historico_ativo = input('Você ja tem um historico? Sim(S) ou Não(N)').upper()
-if historico_ativo == 'S':
-    arquivo = filedialog.askopenfilename()
-    data = pq.ParquetFile(f"{arquivo}").read().to_pandas()
-    # print(data)
-if historico_ativo == 'N':
-    data = buscahistorico(symbol_buy)
+data = buscahistorico(symbol_buy)
+data = data.rename(columns={'open':'Open', 'high':'High', 'low':'Low', 'close':'Close', 'real_volume':'Volume'})
 
-# Indicadores
-IFR = ind.relative_strength_index(data.close, 20)
-data['IFR'] = IFR
-HMA = ind.hull_moving_average(data.close, 20)
-data['HMA'] = HMA
-KELTNER = ind.keltner_channels(data.high, data.low, data.close, 20)
-data['KELTNER_INF'] = KELTNER[0]
-data['KELTNER_MED'] = KELTNER[1]
-data['KELTNER_SUP'] = KELTNER[2]
-data = data.dropna()
+# print(data)
 
-# Sinal de Compra
-previous_HMA = data['HMA'].shift(1)
-previous_IFR = data['IFR'].shift(1)
-previous_close = data['close'].shift(1)
-# data['buy'] = previous_close < previous_HMA
-data['buy'] = data['close'] > data['HMA']
-data['buy'] &= previous_IFR < 30
-data['buy'] &= data['IFR'] > 30
-data['buy'] &= data['close'] < data['KELTNER_INF']
-print(data)
+class RSI(Strategy):
+    
+    upper_bound = 70
+    lower_bound = 30
+    rsi_window = 14
+    
+    def init(self):
+        self.rsi = self.I(talib.RSI, data['Close'], timeperiod= self.rsi_window)
+    
+    def next(self):
+        if crossover(self.rsi, self.upper_bound):
+            self.position.close()
+            
+        elif crossover(self.lower_bound, self.rsi):
+            self.buy()
 
-# fig = go.Figure(go.Candlestick(name='WIN', x=data.index, open=data.open, high=data.high,
-#                                 low=data.low, close=data.close))
-# fig.add_trace(go.Bar(name='IFR', x=data.index, y=data['IFR']))
-# fig.add_trace(go.Scatter(name='HMA', x=data.index, y=data['HMA']))
-# fig.add_trace(go.Scatter(name='KELTNER_INF', x=data.index, y=data['KELTNER_INF']))
-# fig.add_trace(go.Scatter(name='KELTNER_MED', x=data.index, y=data['KELTNER_MED']))
-# fig.add_trace(go.Scatter(name='KELTNER_SUP', x=data.index, y=data['KELTNER_SUP']))
-# fig.update_layout(title='WIN', xaxis_rangeslider_visible=False, margin=dict(l=120, r=20, t=20, b=20),
-#                   template= 'simple_white', width=1200, height=600,)
-# fig.show()
+bt = Backtest(data, RSI, cash = 200000)
+
+stats = bt.run()
+print(stats)
+bt.plot()
