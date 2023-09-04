@@ -1,5 +1,10 @@
 {
     "python.analysis.extraPaths": [
         "./Backtest"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "basic",
+    "python.pythonPath": "C:\\Python\\pythonProject\\automacaob3\\venv\\Scripts\\python.exe",
+    "python.venvPath": "C:\\Python\\pythonProject\\automacaob3\\venv",
+    "python.venvName": "venv",
+    "git.ignoreLimitWarning": true
 }

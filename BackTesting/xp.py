@@ -5,16 +5,16 @@ import re
 import pandas as pd
 
 # Define the folder where the PDF files are located
-pdf_folder = r'D:\Users\Junior\PycharmProjects\automacaob3\BackTesting\notas'
+pdf_folder = r'C:\Python\pythonProject\automacaob3\BackTesting\notas'
 
 # Create a new Excel workbook
 wb = Workbook()
 sheet = wb.active
 
 # Add headers to the columns
-sheet['A1'] = 'Data'
-sheet['B1'] = 'Valor Total'
-sheet['C1'] = 'Credito-Debito'
+sheet['A1'] = 'Data' # type: ignore
+sheet['B1'] = 'Valor Total' # type: ignore
+sheet['C1'] = 'Credito-Debito' # type: ignore
 
 
 
@@ -38,9 +38,9 @@ for filename in os.listdir(pdf_folder):
                 if match:
                     data1 = match.group(1).strip()
                     # Find the next empty row in the sheet
-                    next_row = sheet.max_row + 1
+                    next_row = sheet.max_row + 1 # type: ignore
                     # Write the data to the sheet
-                    sheet.cell(row=next_row, column=1, value=data1)
+                    sheet.cell(row=next_row, column=1, value=data1) # type: ignore
                     # print(data1)
 
                 print_next = False
@@ -52,7 +52,7 @@ for filename in os.listdir(pdf_folder):
                         valor1 = valor1.split(' ')
                         print(valor1)
                         print_next = False
-                        valor1[0] = float(valor1[0].replace('.', '').replace(',', '.'))
+                        valor1[0] = float(valor1[0].replace('.', '').replace(',', '.')) # type: ignore
                         if valor1[1] == 'D':
                             valor1[0] = valor1[0] * -1
                             print(valor1[0], valor1[1])
