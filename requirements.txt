@@ -2,5 +2,6 @@ pandas
 Metatrader5
 pyarrow
 numba
-vectorbt
 numpy
+streamlit
+-U "vectorbt[full]"

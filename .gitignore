@@ -2,3 +2,4 @@ venv/
 Robos/__pycache__/extrair_dados.cpython-310.pyc
 Robos/__pycache__/extrair_dados.cpython-310.pyc
 venv/Lib/site-packages/asttokens/util.py
+.vscode/
